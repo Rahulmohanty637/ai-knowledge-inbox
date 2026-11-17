@@ -1,7 +1,11 @@
 from fastapi import FastAPI
 
+from app.core.config import get_settings
+
 
 def create_app() -> FastAPI:
+    settings = get_settings() 
+    
     app = FastAPI(
         title="AI Knowledge Inbox",
         description="Save notes and URLs, then ask questions over them.",
