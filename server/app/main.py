@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import get_settings
 from app.core.logging import configure_logging
 from app.middleware.request_context import RequestContextMiddleware
+from app.core.error_handlers import register_exception_handlers
 
 
 def create_app() -> FastAPI:
@@ -17,6 +18,7 @@ def create_app() -> FastAPI:
         version="0.1.0",
     )
     
+    register_exception_handlers(app)
     app.add_middleware(RequestContextMiddleware)
     app.add_middleware(
         CORSMiddleware,
