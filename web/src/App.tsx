@@ -1,27 +1,49 @@
-import { useEffect, useState } from "react";
+import { AddItemForm } from "./components/AddItemForm";
+import { AnswerView } from "./components/AnswerView";
+import { AskPanel } from "./components/AskPanel";
+import { ItemList } from "./components/ItemList";
+import { useAsk } from "./hooks/useAsk";
+import { useIngest } from "./hooks/useIngest";
+import { useItems } from "./hooks/useItems";
 
 function App() {
-  const [health, setHealth] = useState<string>("checking...");
-
-  useEffect(() => {
-    fetch("/api/health")
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-      })
-      .then((data) => setHealth(data.status))
-      .catch(() => setHealth("API not reachable"));
-  }, []);
+  const { items, loading, error, refresh } = useItems();
+  const ingest = useIngest(refresh);
+  const ask = useAsk();
+  const hasReadyItems = items.some((i) => i.status === "ready");
 
   return (
-    <main className="min-h-screen bg-slate-50 p-8">
-      <h1 className="text-2xl font-semibold text-slate-900">
-        AI Knowledge Inbox
-      </h1>
-      <p className="mt-2 text-slate-600">
-        API status: <span className="font-mono">{health}</span>
-      </p>
-    </main>
+    <div className="min-h-screen bg-slate-50">
+      <header className="border-b border-slate-200 bg-white">
+        <div className="mx-auto max-w-6xl px-4 py-5">
+          <h1 className="text-2xl font-semibold text-slate-900">AI Knowledge Inbox</h1>
+          <p className="mt-1 text-sm text-slate-600">
+            Save notes and URLs, then ask questions over them.
+          </p>
+        </div>
+      </header>
+
+      <main className="mx-auto grid max-w-6xl gap-6 px-4 py-6 md:grid-cols-2">
+        <div className="space-y-6">
+          <AddItemForm
+            onSubmit={ingest.submit}
+            submitting={ingest.submitting}
+            error={ingest.error}
+          />
+          <ItemList items={items} loading={loading} error={error} />
+        </div>
+
+        <div className="space-y-6">
+          <AskPanel
+            onAsk={ask.ask}
+            loading={ask.loading}
+            error={ask.error}
+            enabled={hasReadyItems}
+          />
+          <AnswerView result={ask.result} loading={ask.loading} />
+        </div>
+      </main>
+    </div>
   );
 }
 
