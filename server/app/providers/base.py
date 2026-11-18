@@ -13,3 +13,7 @@ class LLMProvider(Protocol):
     def complete(self, system: str, user: str) -> str:
         """Return the model's reply to a system + user prompt."""
         ...
+
+
+class AIProvider(EmbeddingProvider, LLMProvider, Protocol):
+    """Something that can both embed text and answer prompts."""

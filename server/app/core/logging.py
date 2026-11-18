@@ -23,5 +23,5 @@ def configure_logging(level: str = "INFO") -> None:
     )
 
     # Third-party libraries log every HTTP call at INFO; keep only their warnings.
-    for noisy in ("httpx", "httpcore", "openai"):
+    for noisy in ("httpx", "httpx2", "httpcore", "openai"):
         logging.getLogger(noisy).setLevel(logging.WARNING)

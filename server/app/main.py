@@ -5,7 +5,7 @@ import structlog
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import ingest, items
+from app.api.routes import ingest, items, query
 from app.core.config import get_settings
 from app.core.error_handlers import register_exception_handlers
 from app.core.logging import configure_logging
@@ -56,6 +56,7 @@ def create_app() -> FastAPI:
 
     app.include_router(ingest.router)
     app.include_router(items.router)
+    app.include_router(query.router)  
 
     @app.get("/health", tags=["system"])
     def health() -> dict[str, str]:
