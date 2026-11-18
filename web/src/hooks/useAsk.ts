@@ -9,7 +9,7 @@ export function useAsk() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function ask(question: string) {
+  const ask = async (question: string) => {
     setLoading(true);
     setError(null);
     try {
@@ -20,7 +20,7 @@ export function useAsk() {
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   return { ask, result, loading, error };
 }

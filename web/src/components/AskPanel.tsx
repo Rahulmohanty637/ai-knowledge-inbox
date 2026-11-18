@@ -13,12 +13,12 @@ export function AskPanel({ onAsk, loading, disabled }: AskPanelProps) {
   const isEmpty = question.trim() === "";
   const inputDisabled = disabled || loading;
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (isEmpty || inputDisabled) return;
     // Keep the question in the box so it stays visible next to its answer.
     onAsk(question.trim());
-  }
+  };
 
   return (
     <form

@@ -7,7 +7,7 @@ export function useIngest(onSaved: () => void) {
     const [error, setError] = useState<string | null>(null);
 
 
-    async function submit(payload: IngestRequest): Promise<boolean> {
+    const submit = async (payload: IngestRequest): Promise<boolean> => {
         setSubmitting(true);
         setError(null);
         try {
@@ -20,7 +20,7 @@ export function useIngest(onSaved: () => void) {
         } finally {
             setSubmitting(false);
         }
-    }
+    };
 
     return { submit, submitting, error }
 

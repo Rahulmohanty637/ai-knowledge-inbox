@@ -23,7 +23,7 @@ export function AddItemForm({ onSubmit, submitting, error }: AddItemFormProps) {
   const value = mode === "note" ? note : url;
   const isEmpty = value.trim() === "";
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (isEmpty || submitting) return;
 
@@ -39,7 +39,7 @@ export function AddItemForm({ onSubmit, submitting, error }: AddItemFormProps) {
       if (submittedMode === "note") setNote("");
       else setUrl("");
     }
-  }
+  };
 
   return (
     <form
