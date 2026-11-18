@@ -35,12 +35,11 @@ function App() {
 
         <div className="space-y-6">
           <AskPanel
-            onAsk={ask.ask}
+            onAsk={(question) => void ask.ask(question)}
             loading={ask.loading}
-            error={ask.error}
-            enabled={hasReadyItems}
+            disabled={!hasReadyItems}
           />
-          <AnswerView result={ask.result} loading={ask.loading} />
+          <AnswerView result={ask.result} loading={ask.loading} error={ask.error} />
         </div>
       </main>
     </div>

@@ -1,8 +1,10 @@
-import type { QueryResponse, Source } from "../types/types";
+import type { QueryResponse } from "../types/types";
+import { SourceCard } from "./SourceCard";
 
 interface AnswerViewProps {
   result: QueryResponse | null;
   loading: boolean;
+  error: string | null;
 }
 
 /** Renders "[1]"-style markers in the answer as links to the matching source. */
@@ -27,41 +29,16 @@ function AnswerText({ text }: { text: string }) {
   );
 }
 
-function SourceItem({ source }: { source: Source }) {
-  const label = source.title || source.url || "Note";
-  return (
-    <li id={`source-${source.index}`} className="rounded-md border border-slate-200 p-3">
-      <div className="flex items-baseline gap-2">
-        <span className="shrink-0 text-xs font-semibold text-slate-500">[{source.index}]</span>
-        {source.url ? (
-          <a
-            href={source.url}
-            target="_blank"
-            rel="noreferrer"
-            className="truncate text-sm font-medium text-slate-900 hover:underline"
-          >
-            {label}
-          </a>
-        ) : (
-          <span className="truncate text-sm font-medium text-slate-900">{label}</span>
-        )}
-      </div>
-      <p className="mt-1 line-clamp-3 text-sm text-slate-600">{source.snippet}</p>
-    </li>
-  );
-}
-
-/** The latest answer and the sources it cites. */
-export function AnswerView({ result, loading }: AnswerViewProps) {
+/** The latest answer and the sources it cites. Renders nothing before the first question. */
+export function AnswerView({ result, loading, error }: AnswerViewProps) {
   if (loading) {
     return <p className="text-sm text-slate-500">Thinking…</p>;
   }
+  if (error) {
+    return <p className="text-sm text-red-600">{error}</p>;
+  }
   if (!result) {
-    return (
-      <p className="rounded-lg border border-dashed border-slate-300 p-6 text-center text-sm text-slate-500">
-        Your answer will appear here.
-      </p>
-    );
+    return null;
   }
 
   return (
@@ -76,7 +53,7 @@ export function AnswerView({ result, loading }: AnswerViewProps) {
           <h3 className="mt-4 text-sm font-semibold text-slate-700">Sources</h3>
           <ol className="mt-2 space-y-2">
             {result.sources.map((source) => (
-              <SourceItem key={source.chunk_id} source={source} />
+              <SourceCard key={source.chunk_id} source={source} />
             ))}
           </ol>
         </>
