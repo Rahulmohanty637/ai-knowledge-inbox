@@ -1,4 +1,4 @@
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlalchemy.orm import Session
 
 from app.db.models import Chunk, Item
@@ -42,3 +42,11 @@ def mark_ready(db: Session, item: Item, *, title: str | None, raw_content: str) 
 def mark_failed(db: Session, item: Item, error: str) -> None:
     item.status = "failed"
     item.error = error
+
+
+def fail_pending_items(db: Session, error: str) -> int:
+    """Mark every 'pending' item as failed. Returns how many were changed."""
+    result = db.execute(
+        update(Item).where(Item.status == "pending").values(status="failed", error=error)
+    )
+    return result.rowcount

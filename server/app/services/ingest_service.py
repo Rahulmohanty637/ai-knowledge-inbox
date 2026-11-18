@@ -13,6 +13,8 @@ from app.schemas.items import NoteIngest, UrlIngest
 from app.services.chunker import chunk_text
 from app.services.vectors import to_bytes
 
+from app.services.url_fetcher import fetch_page
+
 logger = structlog.get_logger("ingest")
 
 TITLE_LENGTH = 80
@@ -21,7 +23,9 @@ TITLE_LENGTH = 80
 def create_item(db: Session, request: NoteIngest | UrlIngest) -> Item:
     """Save the item as 'pending' and return it straight away."""
     if isinstance(request, NoteIngest):
-        item = item_repo.create_item(db, source_type="note", raw_content=request.content)
+        item = item_repo.create_item(
+            db, source_type="note", raw_content=request.content
+        )
     else:
         item = item_repo.create_item(db, source_type="url", url=str(request.url))
     db.commit()
@@ -39,12 +43,16 @@ def process_item(item_id: str, embedder: EmbeddingProvider) -> None:
             return
 
         try:
-            title, text = _extract(item)                                            # Extract
-            chunks = chunk_text(text, settings.chunk_size, settings.chunk_overlap)  # Transform
+            title, text = _extract(item)  # Extract
+            chunks = chunk_text(
+                text, settings.chunk_size, settings.chunk_overlap
+            )  # Transform
             if not chunks:
                 raise BadInputError("There is no text to index in this item.")
             vectors = embedder.embed(chunks)
-            chunk_repo.add_chunks(db, item.id, chunks, [to_bytes(v) for v in vectors])  # Load
+            chunk_repo.add_chunks(
+                db, item.id, chunks, [to_bytes(v) for v in vectors]
+            )  # Load
             item_repo.mark_ready(db, item, title=title, raw_content=text)
             db.commit()
             logger.info("item_ready", item_id=item.id, chunks=len(chunks))
@@ -56,12 +64,13 @@ def process_item(item_id: str, embedder: EmbeddingProvider) -> None:
 
 
 def _extract(item: Item) -> tuple[str | None, str]:
-    """Return (title, text) for the item. URLs are added in Phase 3."""
-    if item.source_type == "note":
-        text = item.raw_content or ""
-        first_line = text.strip().splitlines()[0] if text.strip() else ""
-        return first_line[:TITLE_LENGTH], text
-    raise BadInputError("URL ingestion is not supported yet.")
+    """Return (title, text) for the item: the note itself, or the downloaded page."""
+    if item.source_type == "url":
+        page = fetch_page(item.url or "")
+        return page.title or item.url, page.text
+    text = item.raw_content or ""
+    first_line = text.strip().splitlines()[0] if text.strip() else ""
+    return first_line[:TITLE_LENGTH], text
 
 
 def _fail(db: Session, item: Item, message: str) -> None:

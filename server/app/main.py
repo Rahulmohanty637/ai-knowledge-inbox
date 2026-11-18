@@ -1,32 +1,40 @@
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+
 import structlog
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.core.config import get_settings
-from app.core.logging import configure_logging
-from app.middleware.request_context import RequestContextMiddleware
-from app.core.error_handlers import register_exception_handlers
-
-from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
-
-from app.db.models import Base
-from app.db.session import engine
-
 from app.api.routes import ingest, items
+from app.core.config import get_settings
+from app.core.error_handlers import register_exception_handlers
+from app.core.logging import configure_logging
+from app.db.models import Base
+from app.db.session import SessionLocal, engine
+from app.middleware.request_context import RequestContextMiddleware
+from app.repositories import item_repo
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    """Runs once at startup (before yield) and once at shutdown (after yield)."""
+    logger = structlog.get_logger("app")
     Base.metadata.create_all(bind=engine)  # creates tables if they don't exist
-    structlog.get_logger("app").info(
-        "database_ready", tables=list(Base.metadata.tables)
-    )
+    logger.info("database_ready", tables=list(Base.metadata.tables))
+
+    # Background jobs live in memory, so a restart loses any that were running.
+    with SessionLocal() as db:
+        interrupted = item_repo.fail_pending_items(
+            db, "Processing was interrupted by a server restart. Please add it again."
+        )
+        db.commit()
+    if interrupted:
+        logger.warning("interrupted_items_failed", count=interrupted)
     yield
 
 
 def create_app() -> FastAPI:
-    settings = get_settings()
+    settings = get_settings()  # fails fast if config is missing or invalid
     configure_logging(settings.log_level)
 
     app = FastAPI(
@@ -45,7 +53,7 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
         expose_headers=["X-Request-ID"],
     )
-    
+
     app.include_router(ingest.router)
     app.include_router(items.router)
 
