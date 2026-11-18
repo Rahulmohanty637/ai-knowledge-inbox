@@ -13,6 +13,8 @@ from contextlib import asynccontextmanager
 from app.db.models import Base
 from app.db.session import engine
 
+from app.api.routes import ingest, items
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
@@ -43,6 +45,9 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
         expose_headers=["X-Request-ID"],
     )
+    
+    app.include_router(ingest.router)
+    app.include_router(items.router)
 
     @app.get("/health", tags=["system"])
     def health() -> dict[str, str]:
