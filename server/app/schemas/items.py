@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl, field_serializer
@@ -8,6 +8,7 @@ ItemStatus = Literal["pending", "ready", "failed"]
 
 
 # ---------- Requests ----------
+
 
 class NoteIngest(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True)
@@ -27,6 +28,7 @@ IngestRequest = Annotated[NoteIngest | UrlIngest, Field(discriminator="type")]
 
 # ---------- Responses ----------
 
+
 class ItemOut(BaseModel):
     id: str
     source_type: SourceType
@@ -42,7 +44,7 @@ class ItemOut(BaseModel):
     def _as_utc(self, value: datetime) -> str:
         """SQLite drops timezone info; we always store UTC, so re-attach it."""
         if value.tzinfo is None:
-            value = value.replace(tzinfo=timezone.utc)
+            value = value.replace(tzinfo=UTC)
         return value.isoformat()
 
 

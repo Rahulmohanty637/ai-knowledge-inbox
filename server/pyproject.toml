@@ -1,3 +1,17 @@
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = [".venv", "data"]
+
+[tool.ruff.lint]
+# E/W: style errors · F: real bugs (undefined names, unused imports) · I: import order
+# UP: modern Python syntax · B: common bug patterns
+select = ["E", "W", "F", "I", "UP", "B"]
+ignore = ["B008"]  # FastAPI's Depends(...) in default arguments is the intended pattern
+
+[tool.ruff.lint.per-file-ignores]
+"app/services/prompt_builder.py" = ["E501"]  # the prompt is prose; wrapping it would change it

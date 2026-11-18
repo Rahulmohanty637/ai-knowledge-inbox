@@ -31,7 +31,9 @@ class OpenAIProvider:
                 response = self._client.embeddings.create(model=self._embedding_model, input=batch)
             except OpenAIError as exc:
                 logger.error("embedding_failed", error=str(exc), batch_size=len(batch))
-                raise UpstreamError("The embedding service is unavailable. Please try again.") from exc
+                raise UpstreamError(
+                    "The embedding service is unavailable. Please try again."
+                ) from exc
             ordered = sorted(response.data, key=lambda item: item.index)
             vectors.extend(item.embedding for item in ordered)
         logger.info("embedded", count=len(texts), model=self._embedding_model)

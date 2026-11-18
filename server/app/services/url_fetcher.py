@@ -14,9 +14,7 @@ logger = structlog.get_logger("url_fetcher")
 TIMEOUT_SECONDS = 10.0
 MAX_BYTES = 2_000_000  # 2 MB
 ALLOWED_CONTENT_TYPES = {"text/html", "application/xhtml+xml", "text/plain"}
-USER_AGENT = (
-    "AIKnowledgeInbox/0.1 (+https://github.com/Rahulmohanty637/ai-knowledge-inbox)"
-)
+USER_AGENT = "AIKnowledgeInbox/0.1 (+https://github.com/Rahulmohanty637/ai-knowledge-inbox)"
 _FOOTNOTE_MARKER = re.compile(r"\[(\d+|citation needed|note \d+)\]")
 
 
@@ -36,20 +34,21 @@ def fetch_page(url: str) -> FetchedPage:
 
 def _download(url: str) -> tuple[str, str]:
     try:
-        with httpx.Client(
-            timeout=TIMEOUT_SECONDS,
-            follow_redirects=True,
-            headers={
-                "User-Agent": USER_AGENT,
-                "Accept": "text/html,application/xhtml+xml,text/plain;q=0.9",
-            },
-        ) as client, client.stream("GET", url) as response:
+        with (
+            httpx.Client(
+                timeout=TIMEOUT_SECONDS,
+                follow_redirects=True,
+                headers={
+                    "User-Agent": USER_AGENT,
+                    "Accept": "text/html,application/xhtml+xml,text/plain;q=0.9",
+                },
+            ) as client,
+            client.stream("GET", url) as response,
+        ):
             if response.status_code >= 400:
                 raise BadInputError(_http_error_message(response.status_code))
 
-            content_type = (
-                response.headers.get("content-type", "").split(";")[0].strip().lower()
-            )
+            content_type = response.headers.get("content-type", "").split(";")[0].strip().lower()
             if content_type not in ALLOWED_CONTENT_TYPES:
                 raise BadInputError(
                     f"Unsupported content type '{content_type or 'unknown'}'. "
@@ -82,9 +81,7 @@ def _http_error_message(status: int) -> str:
 
 
 def _extract_article(html: str, url: str) -> FetchedPage:
-    text = trafilatura.extract(
-        html, url=url, include_comments=False, include_tables=True
-    )
+    text = trafilatura.extract(html, url=url, include_comments=False, include_tables=True)
     if not text:
         raise BadInputError("Could not find readable text on this page.")
     text = _FOOTNOTE_MARKER.sub("", text)  # drop "[1]"-style refs; we use [n] for our own citations

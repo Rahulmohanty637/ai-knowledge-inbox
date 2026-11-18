@@ -11,9 +11,8 @@ from app.providers.base import EmbeddingProvider
 from app.repositories import chunk_repo, item_repo
 from app.schemas.items import NoteIngest, UrlIngest
 from app.services.chunker import chunk_text
-from app.services.vectors import to_bytes
-
 from app.services.url_fetcher import fetch_page
+from app.services.vectors import to_bytes
 
 logger = structlog.get_logger("ingest")
 
@@ -23,9 +22,7 @@ TITLE_LENGTH = 80
 def create_item(db: Session, request: NoteIngest | UrlIngest) -> Item:
     """Save the item as 'pending' and return it straight away."""
     if isinstance(request, NoteIngest):
-        item = item_repo.create_item(
-            db, source_type="note", raw_content=request.content
-        )
+        item = item_repo.create_item(db, source_type="note", raw_content=request.content)
     else:
         item = item_repo.create_item(db, source_type="url", url=str(request.url))
     db.commit()
@@ -44,15 +41,11 @@ def process_item(item_id: str, embedder: EmbeddingProvider) -> None:
 
         try:
             title, text = _extract(item)  # Extract
-            chunks = chunk_text(
-                text, settings.chunk_size, settings.chunk_overlap
-            )  # Transform
+            chunks = chunk_text(text, settings.chunk_size, settings.chunk_overlap)  # Transform
             if not chunks:
                 raise BadInputError("There is no text to index in this item.")
             vectors = embedder.embed(chunks)
-            chunk_repo.add_chunks(
-                db, item.id, chunks, [to_bytes(v) for v in vectors]
-            )  # Load
+            chunk_repo.add_chunks(db, item.id, chunks, [to_bytes(v) for v in vectors])  # Load
             item_repo.mark_ready(db, item, title=title, raw_content=text)
             db.commit()
             logger.info("item_ready", item_id=item.id, chunks=len(chunks))

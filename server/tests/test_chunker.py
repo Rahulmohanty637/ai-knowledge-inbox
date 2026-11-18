@@ -29,7 +29,7 @@ def test_no_sentence_is_lost():
 
 def test_consecutive_chunks_overlap():
     chunks = chunk_text(LONG_TEXT, size=200, overlap=40)
-    for prev, nxt in zip(chunks, chunks[1:]):
+    for prev, nxt in zip(chunks, chunks[1:], strict=False):
         first_word = nxt.split()[0]
         assert first_word in prev[-60:]
 

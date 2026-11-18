@@ -64,8 +64,6 @@ def chunk_text(text: str, size: int = 800, overlap: int = 100) -> list[str]:
             continue
         chunks.append(current)
         tail = _overlap_tail(current, overlap)
-        current = (
-            f"{tail} {unit}" if tail and len(tail) + 1 + len(unit) <= size else unit
-        )
+        current = f"{tail} {unit}" if tail and len(tail) + 1 + len(unit) <= size else unit
     chunks.append(current)
     return chunks

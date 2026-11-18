@@ -21,7 +21,9 @@ _CITATION = re.compile(r"\[(\d+)\]")
 def answer_question(db: Session, question: str, top_k: int | None, ai: AIProvider) -> QueryResponse:
     settings = get_settings()
     [query_vector] = ai.embed([question])
-    retrieved = retrieve(db, query_vector, top_k=top_k or settings.top_k, min_score=settings.min_score)
+    retrieved = retrieve(
+        db, query_vector, top_k=top_k or settings.top_k, min_score=settings.min_score
+    )
     logger.info(
         "chunks_retrieved",
         count=len(retrieved),

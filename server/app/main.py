@@ -56,7 +56,7 @@ def create_app() -> FastAPI:
 
     app.include_router(ingest.router)
     app.include_router(items.router)
-    app.include_router(query.router)  
+    app.include_router(query.router)
 
     @app.get("/health", tags=["system"])
     def health() -> dict[str, str]:

@@ -30,7 +30,9 @@ def top_indices(scores: np.ndarray, top_k: int, min_score: float) -> list[int]:
     return [int(i) for i in best_first if scores[i] >= min_score]
 
 
-def retrieve(db: Session, query_vector: list[float], *, top_k: int, min_score: float) -> list[RetrievedChunk]:
+def retrieve(
+    db: Session, query_vector: list[float], *, top_k: int, min_score: float
+) -> list[RetrievedChunk]:
     rows = chunk_repo.list_ready_chunks(db)
     if not rows:
         return []

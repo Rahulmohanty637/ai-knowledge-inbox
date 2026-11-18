@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import DateTime, ForeignKey, Integer, LargeBinary, String, Text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
@@ -10,7 +10,7 @@ def _uuid() -> str:
 
 
 def _now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class Base(DeclarativeBase):
@@ -23,7 +23,7 @@ class Item(Base):
     __tablename__ = "items"
 
     id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_uuid)
-    source_type: Mapped[str] = mapped_column(String(10))           # "note" | "url"
+    source_type: Mapped[str] = mapped_column(String(10))  # "note" | "url"
     url: Mapped[str | None] = mapped_column(Text, nullable=True)
     title: Mapped[str | None] = mapped_column(Text, nullable=True)
     raw_content: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -45,9 +45,7 @@ class Chunk(Base):
     __tablename__ = "chunks"
 
     id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_uuid)
-    item_id: Mapped[str] = mapped_column(
-        ForeignKey("items.id", ondelete="CASCADE"), index=True
-    )
+    item_id: Mapped[str] = mapped_column(ForeignKey("items.id", ondelete="CASCADE"), index=True)
     chunk_index: Mapped[int] = mapped_column(Integer)
     text: Mapped[str] = mapped_column(Text)
     embedding: Mapped[bytes] = mapped_column(LargeBinary)  # float32 array as bytes
