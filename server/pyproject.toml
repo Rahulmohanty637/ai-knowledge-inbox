@@ -1,6 +1,7 @@
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
+filterwarnings = ["ignore:SOCKS support in urllib3:Warning"]
 
 [tool.ruff]
 line-length = 100

@@ -13,6 +13,9 @@ const MODES: { value: SourceType; label: string }[] = [
   { value: "url", label: "URL" },
 ];
 
+const fieldClass =
+  "w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm placeholder:text-slate-500 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500";
+
 /** Lets the user save either a free-text note or a URL. */
 export function AddItemForm({ onSubmit, submitting, error }: AddItemFormProps) {
   const [mode, setMode] = useState<SourceType>("note");
@@ -42,24 +45,21 @@ export function AddItemForm({ onSubmit, submitting, error }: AddItemFormProps) {
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm"
-    >
+    <form onSubmit={handleSubmit} className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-slate-900">Add to inbox</h2>
+        <h2 className="text-sm font-semibold text-slate-900">Add to inbox</h2>
 
-        <div className="inline-flex rounded-md border border-slate-200 p-0.5" role="group">
+        <div className="inline-flex rounded-md bg-slate-100 p-0.5" role="group">
           {MODES.map((m) => (
             <button
               key={m.value}
               type="button"
               onClick={() => setMode(m.value)}
               aria-pressed={mode === m.value}
-              className={`rounded px-3 py-1 text-sm font-medium transition-colors ${
+              className={`rounded px-3 py-1 text-xs font-medium transition-colors ${
                 mode === m.value
-                  ? "bg-slate-900 text-white"
-                  : "text-slate-600 hover:bg-slate-100"
+                  ? "bg-white text-slate-900 shadow-sm"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
               {m.label}
@@ -68,35 +68,33 @@ export function AddItemForm({ onSubmit, submitting, error }: AddItemFormProps) {
         </div>
       </div>
 
-      <div className="mt-3">
-        {mode === "note" ? (
-          <textarea
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            placeholder="Paste or write a note…"
-            rows={5}
-            aria-label="Note content"
-            className="w-full resize-y rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
-          />
-        ) : (
-          <input
-            type="url"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            placeholder="https://example.com/article"
-            aria-label="URL"
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
-          />
-        )}
-      </div>
+      {mode === "note" ? (
+        <textarea
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          placeholder="Write a note…"
+          rows={3}
+          aria-label="Note content"
+          className={`resize-y ${fieldClass}`}
+        />
+      ) : (
+        <input
+          type="url"
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          placeholder="https://example.com/article"
+          aria-label="URL"
+          className={fieldClass}
+        />
+      )}
 
-      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-red-700">{error}</p>}
 
-      <div className="mt-3 flex justify-end">
+      <div className="flex justify-end">
         <button
           type="submit"
           disabled={submitting || isEmpty}
-          className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+          className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500"
         >
           {submitting ? "Saving…" : "Save"}
         </button>
